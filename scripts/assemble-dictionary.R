@@ -1,6 +1,6 @@
 # Hannah Recht, 01-05-16
-# Assemble IPEDS dictionaries for use in analyses
-# 
+# Assemble IPEDS dictionaries for use in analyses bc custom data downloads don't include variable descriptions
+# Dictionary files downloaded in download-dictionaries.py
 
 library(openxlsx)
 library(dplyr)
@@ -9,12 +9,14 @@ library(dplyr)
 paths <- list.files("raw",full.names=T)
 paths <- paths[-which(paths=="raw/data")]
 
+# Append all the dictionaries
 dt <- readWorkbook(paths[1], sheet="varlist", colNames=T, rowNames=F)
 for (i in paths[-1]) {
   temp <- readWorkbook(i, sheet="varlist", colNames=T, rowNames=F)
   dt <- rbind(dt, temp)
 }
 
+# Format for later use
 dt <- dt %>% arrange(varnumber)
 dt$varname <- tolower(dt$varname)
 dt$imputationvar <- tolower(dt$imputationvar)
