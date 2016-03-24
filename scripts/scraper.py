@@ -56,6 +56,7 @@ years = list()
 for option in select.options:
     years.append(option.get_attribute('value'))
 
+# Get info on all the available datasets per year, save
 def chooseyear(year):
     # Choose year from dropdown
     select.select_by_value(year)
@@ -67,5 +68,7 @@ def chooseyear(year):
 # -1 = All years
 chooseyear('-1')
 
-with open(os.path.join(fileDir,'../data/ipedsfiles.json'), 'w') as fp:
+# Export to json
+#with open(os.path.join(fileDir,'../data/ipedsfiles.json'), 'w') as fp:
+with open(os.path.join(fileDir,'data/ipedsfiles.json'), 'w') as fp:
     json.dump(files, fp)
