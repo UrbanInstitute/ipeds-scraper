@@ -11,13 +11,6 @@ import json
 import zipfile
 import os
 
-# Get working directory
-def readFile(filename):
-    filehandle = open(filename)
-    filehandle.close()
-
-fileDir = os.path.dirname(os.path.realpath('__file__'))
-
 driver = webdriver.Firefox()
 
 # Directory url for downloads
@@ -69,6 +62,5 @@ def chooseyear(year):
 chooseyear('-1')
 
 # Export to json
-#with open(os.path.join(fileDir,'../data/ipedsfiles.json'), 'w') as fp:
-with open(os.path.join(fileDir,'data/ipedsfiles.json'), 'w') as fp:
+with open('data/ipedsfiles.json', 'w') as fp:
     json.dump(files, fp)
