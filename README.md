@@ -20,3 +20,9 @@ pip install xlrd
 
 python3 scripts/makeDictionary.py
 ```
+
+## Download files
+Download data files listed in [data/ipedsfiles.json](data/ipedsfiles.json)
+```python
+python3 scripts/downloadData.py
+```
