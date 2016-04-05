@@ -20,49 +20,60 @@ with open('data/ipedsfiles.json') as fp:
 if not os.path.exists('raw/dictionary/'):
     os.makedirs('raw/dictionary/')
 
-def downloadDicts():
-    for f in allfiles:
-        # URL to download
-        url = f['dicturl']
-        # dataset file name (XXXX.zip)
-        urlname = url.split("http://nces.ed.gov/ipeds/datacenter/data/",1)[1]
-        rd = urlopen(url)
-        saveurl = "raw/dictionary/" + urlname
-        # Save the zip files
-        with open(saveurl, "wb") as p:
-             p.write(rd.read())
-             p.close()
+# The pre-2009 dictionaries are HTML. Fun! Actually misery! 2009+ are mix of .xls and .xlsx and a few .html
+# Downloading the pre-2009 dictionary zips will get you a bunch of html files
 
-        # Unzip .zips (contain .xlsx dictionaries)
-        zip_ref = zipfile.ZipFile(saveurl, 'r')
-        zip_ref.extractall("raw/dictionary/")
-        zip_ref.close()
+def downloadDicts(start, stop):
+    for i in range(start,stop):
+        print(i)
+        # Make directory for the raw files - one per year
+        if not os.path.exists('dict/' + str(i) + '/'):
+            os.makedirs('dict/' + str(i) + '/')
+        # Download all the files in the json
+        for f in allfiles:
+            if(f['year']==i):
+                # URL to download
+                url = f['dicturl']
+                # dataset file name (XXXX.zip)
+                urlname = url.split("http://nces.ed.gov/ipeds/datacenter/data/",1)[1]
+                rd = urlopen(url)
+                saveurl = "dict/" + str(i) +'/' + urlname
+                # Save the zip files
+                with open(saveurl, "wb") as p:
+                     p.write(rd.read())
+                     p.close()
 
-        # Remove zip file
-        os.remove("raw/dictionary/" + urlname)
-downloadDicts()
+                # Unzip .zips
+                zip_ref = zipfile.ZipFile(saveurl, 'r')
+                zip_ref.extractall("dict/" + str(i) +'/')
+                zip_ref.close()
 
-# The pre-2009 dictionaries are HTML. Fun! Actually misery! 2009+ are mix of .xls and .xlsx
+                # Remove zip file
+                os.remove("dict/" + str(i) +'/' + urlname)
+#downloadDicts(2009,2015)
+
 # For the Excel dictionaries, compile the varlist tabs
-def makeMasterDict():
+def makeMasterDict(start, stop):
     # Set up dictionary CSV
     with open('data/dictionary.csv', 'w') as f:
         c = csv.writer(f)
-        c.writerow(['varnumber', 'varname', 'datatype' ,'fieldwidth', 'format', 'imputationvar', 'vartitle', 'dictfile', 'dictname'])
+        c.writerow(['year', 'dictname', 'dictfile', 'varnumber', 'varname', 'datatype' ,'fieldwidth', 'format', 'imputationvar', 'vartitle'])
+        f.close()
 
-    # For each Excel dictionary, take the contents and file name and add to master dictionary csv
-    for file in os.listdir("raw/dictionary/"):
-        if file.endswith((".xls", ".xlsx")):
-            # print(file)
-            dictname = file.split(".", 1)[0]
-            workbook = xlrd.open_workbook('raw/dictionary/' + file, on_demand = True)
-            worksheet = workbook.sheet_by_name('varlist')
-            with open('data/dictionary.csv', 'a') as f:
-                c = csv.writer(f)
-                for r in range(2,worksheet.nrows):
-                    varrow = worksheet.row_values(r)
-                    varrow.append(file)
-                    varrow.append(dictname)
-                    c.writerow(varrow)
-
-makeMasterDict()
+        # For each Excel dictionary, take the contents and file name and add to master dictionary csv
+    for i in range(start,stop):
+        print(i)
+        for file in os.listdir('dict/' + str(i) + '/'):
+            if file.endswith((".xls", ".xlsx")):
+                # print(file)
+                dictname = file.split(".", 1)[0]
+                rowstart = [i, dictname, file]
+                workbook = xlrd.open_workbook('dict/' + str(i) +'/' + file, on_demand = True)
+                worksheet = workbook.sheet_by_name('varlist')
+                with open('data/dictionary.csv', 'a') as f:
+                    c = csv.writer(f)
+                    for r in range(2,worksheet.nrows):
+                        varrow = worksheet.row_values(r)
+                        row = rowstart + varrow
+                        c.writerow(row)
+makeMasterDict(2009, 2015)
