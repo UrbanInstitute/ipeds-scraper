@@ -64,3 +64,27 @@ def removeDups(start, stop):
                 else:
                     print('no match ' + unrevised)
 removeDups(1985,2015)
+
+# Get column names in each CSV
+dataVariables = list()
+def listVars(start, stop):
+    for i in range(start,stop):
+        files = os.listdir('raw/' + str(i) + '/')
+        for file in files:
+            if file.endswith(('.csv')):
+                #print(file)
+                # Year, file name, file path, column names
+                entry = dict()
+                entry['year'] = i
+                entry['file'] = file
+                entry['path'] = 'raw/' + str(i) + '/' + file
+                with open('raw/' + str(i) + '/' + file, 'r') as c:
+                    d_reader = csv.DictReader(c)
+                    entry['columns'] = d_reader.fieldnames
+                c.close()
+                dataVariables.append(entry)
+    # Export to json
+    with open('data/ipedscolumns.json', 'w') as fp:
+        json.dump(dataVariables, fp)
+
+listVars(1985,2015)
