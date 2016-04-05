@@ -42,7 +42,7 @@ def downloadData(start, stop):
 
                 # Remove zip file
                 os.remove("raw/" + str(i) +'/' + urlname)
-downloadData(1985,2015)
+#downloadData(1985,2015)
 
 # Some datasets have been revised over time, so they'll download XXXX.csv and XXXX_rv.csv
 # We only want the revised version
@@ -51,9 +51,9 @@ def removeDups(start, stop):
         files = os.listdir('raw/' + str(i) + '/')
         # See how many files are in each year
         # print([i,len(files)])
-        for f in files:
+        for file in files:
             # file name minus '.csv'
-            name = f[:-4]
+            name = file[:-4]
             # If the file name ends in _rv, keep that one and delete the other (no _rv)
             if(name[-3:] =='_rv'):
                 #print(name)
@@ -63,7 +63,8 @@ def removeDups(start, stop):
                     print('removed ' + unrevised)
                 else:
                     print('no match ' + unrevised)
-removeDups(1985,2015)
+#removeDups(1985,2015)
+
 
 # Get column names in each CSV
 dataVariables = list()
@@ -73,10 +74,17 @@ def listVars(start, stop):
         for file in files:
             if file.endswith(('.csv')):
                 #print(file)
-                # Year, file name, file path, column names
+
                 entry = dict()
                 entry['year'] = i
-                entry['file'] = file
+
+                # file name minus '.csv'
+                name = file[:-4]
+                # If the file name ends in _rv, strip the rv for name field
+                if(name[-3:] =='_rv'):
+                    name = name[:-3]
+
+                entry['name'] = name
                 entry['path'] = 'raw/' + str(i) + '/' + file
                 with open('raw/' + str(i) + '/' + file, 'r') as c:
                     d_reader = csv.DictReader(c)
@@ -88,3 +96,15 @@ def listVars(start, stop):
         json.dump(dataVariables, fp)
 
 listVars(1985,2015)
+
+def merge(lsta, lstb):
+    for i in lstb:
+        for j in lsta:
+            if j['name'] == i['name']:
+                j.update(i)
+                break
+        else:
+            lsta.append(i)
+
+for k,v in dictb.items():
+    merge(dicta.setdefault(k, []), v)

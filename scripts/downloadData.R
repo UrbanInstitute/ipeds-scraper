@@ -3,10 +3,28 @@ library("dplyr")
 library("stringr")
 
 allfiles <- fromJSON("data/ipedsfiles.json")
+datacols <- fromJSON("data/ipedscolumns.json")
 
-# dataset name
-allfiles <- allfiles %>% mutate(urlpart = str_sub(dataurl, start=42, end=-5))
-# remove the years - the IPEDS names aren't standard but we can try
-allfiles <- allfiles %>% mutate(dataname = gsub("\\d", "", allfiles$urlpart))
-temp <- as.data.frame(table(allfiles$dataname))
-# Get "EF____D" files
+# Join colnames to file info, remove FLAGS datasets
+ipeds <- left_join(datacols, allfiles, by = c("name", "year"))
+ipeds <- ipeds %>% filter(!grepl("flags", name))
+
+
+# Search for a variable, return list of files that contain it
+searchVars <- function(vars) {
+  dt <- ipeds %>% filter(grepl(paste(vars, collapse='|'), columns, ignore.case = T))
+  return(dt)
+}
+
+# Example
+# f1b01	Tuition and fees, after deducting discounts and allowances
+# f2d01	Tuition and fees - Total
+myvars <- c("f1b01", "f2d01")
+
+dt <- searchVars(myvars)
+vars <- c(myvars, "unitid")
+for (i in 1:nrow(dt)) {
+  name <- dt[i,"name"]
+  path <- dt[i, "path"]
+  assign(name, read.csv(path, stringsAsFactors = F))
+}

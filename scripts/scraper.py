@@ -30,6 +30,8 @@ def scrapetable():
         entry['title'] = tds[2].text
         entry['dataurl'] = dirurl + tds[3].a.get('href')
         entry['dicturl'] = dirurl + tds[6].a.get('href')
+        # File name minus 'data/' and '.zip'
+        entry['name'] = (tds[3].a.get('href')[5:-4]).lower()
         files.append(entry)
 
 # There is no direct link to the complete data files view. Need to press some buttons.
