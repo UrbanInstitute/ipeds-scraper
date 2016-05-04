@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Download all the IPEDS data files from 1985 to present
+Download all IPEDS  Complete Data Files for a given set of years
+Extract and keep final/revised versions
+Make a json specifying columns in each data file
 Hannah Recht, 04-04-16
 """
 
@@ -96,15 +98,3 @@ def listVars(start, stop):
         json.dump(dataVariables, fp)
 
 listVars(1985,2015)
-
-def merge(lsta, lstb):
-    for i in lstb:
-        for j in lsta:
-            if j['name'] == i['name']:
-                j.update(i)
-                break
-        else:
-            lsta.append(i)
-
-for k,v in dictb.items():
-    merge(dicta.setdefault(k, []), v)
