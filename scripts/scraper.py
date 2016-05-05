@@ -22,7 +22,7 @@ def scrapetable():
     soup = BeautifulSoup(''.join(content), "lxml")
     table = soup.find("table", { "id" : "contentPlaceHolder_tblResult" })
     # Get info and URLs for data zip and dictionary zip
-    for row in table.find_all('tr')[2:]:
+    for row in table.find_all('tr')[1:]:
         entry = dict()
         tds = row.find_all('td')
         entry['year'] = int(tds[0].text)

@@ -2,8 +2,11 @@ library("jsonlite")
 library("dplyr")
 library("stringr")
 
-allfiles <- fromJSON("data/ipedsfiles.json")
-datacols <- fromJSON("data/ipedscolumns.json")
+#Set your directory path for the data, if needed
+ipedspath <- "/Users/hrecht/Documents/ipeds-scraper/"
+
+allfiles <- fromJSON(paste(ipedspath, "data/ipedsfiles.json", sep=""))
+datacols <- fromJSON(paste(ipedspath, "data/ipedscolumns.json", sep=""))
 
 # Join colnames to file info, remove FLAGS datasets
 ipeds <- left_join(datacols, allfiles, by = c("name", "year"))
@@ -23,15 +26,15 @@ searchVars <- function(vars) {
 }
 
 # Example
-# f1b01	Tuition and fees, after deducting discounts and allowances
 # f2d01	Tuition and fees - Total
-vars <- c("f1b01", "f2d01")
+vars <- "f2d01"
 dl <- searchVars(vars)
 allvars <- tolower(c(vars, "unitid", "year"))
 for (i in seq_along(dl)) {
   csvpath <- dl[[i]]$path
+  fullpath <- paste(ipedspath, csvpath, sep="")
   name <- dl[[i]]$name
-  d <- read.csv(csvpath, header=T, stringsAsFactors = F)
+  d <- read.csv(fullpath, header=T, stringsAsFactors = F)
   # Give it a year variable
   d$year <- dl[[i]]$year
   # All lowercase colnames
@@ -42,3 +45,13 @@ for (i in seq_along(dl)) {
   
   assign(name, d)
 }
+
+# If desired, bind the datasets together
+makeDataset <- function(vars) {
+  dt <- ipeds %>% filter(grepl(paste(vars, collapse='|'), columns, ignore.case = T))
+  ipeds_list <- lapply(dt$name, get)
+  ipedsdata <- bind_rows(ipeds_list)
+  ipedsdata <- ipedsdata %>% arrange(year, unitid)
+  return(ipedsdata)
+}
+ipedsdata <- makeDataset(vars)

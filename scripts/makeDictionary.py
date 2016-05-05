@@ -24,6 +24,7 @@ if not os.path.exists('raw/dictionary/'):
 # Downloading the pre-2009 dictionary zips will get you a bunch of html files
 
 def downloadDicts(start, stop):
+    print("Downloading dictionaries")
     for i in range(start,stop):
         print(i)
         # Make directory for the raw files - one per year
@@ -50,10 +51,11 @@ def downloadDicts(start, stop):
 
                 # Remove zip file
                 os.remove("dict/" + str(i) +'/' + urlname)
-#downloadDicts(2009,2015)
+downloadDicts(2009, 2015)
 
 # For the Excel dictionaries, compile the varlist tabs
 def makeMasterDict(start, stop):
+    print("Assembling master dictionary")
     # Set up dictionary CSV
     with open('data/dictionary.csv', 'w') as f:
         c = csv.writer(f)

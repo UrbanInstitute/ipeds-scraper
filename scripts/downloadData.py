@@ -18,6 +18,7 @@ with open('data/ipedsfiles.json') as fp:
 
 # Download all the data in given years
 def downloadData(start, stop):
+    print("Downloading data")
     for i in range(start,stop):
         print(i)
         # Make directory for the raw files - one per year
@@ -44,12 +45,14 @@ def downloadData(start, stop):
 
                 # Remove zip file
                 os.remove("raw/" + str(i) +'/' + urlname)
-#downloadData(1985,2015)
+#downloadData(1985, 2015)
 
 # Some datasets have been revised over time, so they'll download XXXX.csv and XXXX_rv.csv
 # We only want the revised version
 def removeDups(start, stop):
+    print("Removing duplicates")
     for i in range(start,stop):
+        print(i)
         files = os.listdir('raw/' + str(i) + '/')
         # See how many files are in each year
         # print([i,len(files)])
@@ -65,13 +68,15 @@ def removeDups(start, stop):
                     print('removed ' + unrevised)
                 else:
                     print('no match ' + unrevised)
-#removeDups(1985,2015)
+#removeDups(1985, 2015)
 
 
 # Get column names in each CSV
 dataVariables = list()
 def listVars(start, stop):
+    print("Getting column names")
     for i in range(start,stop):
+        print(i)
         files = os.listdir('raw/' + str(i) + '/')
         for file in files:
             if file.endswith(('.csv')):
@@ -97,4 +102,4 @@ def listVars(start, stop):
     with open('data/ipedscolumns.json', 'w') as fp:
         json.dump(dataVariables, fp)
 
-listVars(1985,2015)
+listVars(1985, 2015)
