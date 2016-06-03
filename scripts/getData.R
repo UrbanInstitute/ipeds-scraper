@@ -12,7 +12,11 @@ datacols <- fromJSON(paste(ipedspath, "data/ipedscolumns.json", sep=""))
 ipeds <- left_join(datacols, allfiles, by = c("name", "year"))
 ipeds <- ipeds %>% filter(!grepl("flags", name))
 
-# Search for a variable, return list of files that contain it
+# There are a few in the way that IPEDS lists its files - remove them
+ipeds <-ipeds[!duplicated(ipeds[,"path"]),]
+
+# Sea
+rch for a variable, return list of files that contain it
 searchVars <- function(vars) {
   # Filter the full IPEDS metadata dataset info to just those containing your vars
   dt <- ipeds %>% filter(grepl(paste(vars, collapse='|'), columns, ignore.case = T))
