@@ -2,7 +2,9 @@
 
 Download data from IPEDS [complete data files](http://nces.ed.gov/ipeds/datacenter/DataFiles.aspx). 
 
-For each year, IPEDS splits data into several files - up to several dozen. The datasets are each saved as .csv and compressed into .zip (Stata file .zip are also available). Each file has a corresponding dictionary .zip, which includes .xls, .xlsx, or .html dictionaries. According to NCES, there is no comprehensive dictionary available.
+For each year, IPEDS splits data into several files - up to several dozen. The datasets are each saved as .csv and compressed into .zip (Stata file .zip are also available). For some years, revised datasets are available. These are included in the same .zip file. In revised file cases, the non-revised file is deleted in scripts/downloadData.py and the final version is saved.
+
+Each file has a corresponding dictionary .zip, which includes .xls, .xlsx, or .html dictionaries. According to NCES, there is no comprehensive dictionary available.
 
 Beware: variable names frequently change between years. In other cases, the variable name will stay the same but the value levels will change (e.g. 1,2,3 in 2000 and 5,10,15,20 in 2001). I don't have a good answer for comparing between years, besides looking at the data dictionaries. If you have a better answer please share!
 
