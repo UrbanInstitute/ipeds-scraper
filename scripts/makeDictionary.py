@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Download IPEDS dictionaries and make a master file to index what variables are in what datasets
-Hannah Recht, 03-28-16
+Download IPEDS dictionaries and make a master csv dictionary
+Note, pre-2009 dictionaries are awfully-formatted HTML.
 """
 
 from urllib.request import urlopen
@@ -10,7 +10,14 @@ import zipfile
 import os
 import xlrd
 import csv
+import argparse
 
+parser = argparse.ArgumentParser()
+parser.add_argument("start", help="start year",
+                    type=int)
+parser.add_argument("stop", help="stop year",
+                    type=int)
+args = parser.parse_args()
 
 # Import json of available files, created in scraper.py
 with open('data/ipedsfiles.json') as fp:
@@ -24,9 +31,11 @@ if not os.path.exists('raw/dictionary/'):
 # Downloading the pre-2009 dictionary zips will get you a bunch of html files
 
 def downloadDicts(start, stop):
+    print("*****************************")
     print("Downloading dictionaries")
+    print("*****************************")
     for i in range(start,stop):
-        print(i)
+        print("Downloading " + str(i) + " dictionaries")
         # Make directory for the raw files - one per year
         if not os.path.exists('dict/' + str(i) + '/'):
             os.makedirs('dict/' + str(i) + '/')
@@ -51,11 +60,12 @@ def downloadDicts(start, stop):
 
                 # Remove zip file
                 os.remove("dict/" + str(i) +'/' + urlname)
-downloadDicts(2009, 2015)
 
 # For the Excel dictionaries, compile the varlist tabs
 def makeMasterDict(start, stop):
+    print("*****************************")
     print("Assembling master dictionary")
+    print("*****************************")
     # Set up dictionary CSV
     with open('data/dictionary.csv', 'w') as f:
         c = csv.writer(f)
@@ -64,10 +74,9 @@ def makeMasterDict(start, stop):
 
         # For each Excel dictionary, take the contents and file name and add to master dictionary csv
     for i in range(start,stop):
-        print(i)
         for file in os.listdir('dict/' + str(i) + '/'):
             if file.endswith((".xls", ".xlsx")):
-                # print(file)
+                print("Adding " + str(i) + " " + file + " to dictionary")
                 dictname = file.split(".", 1)[0]
                 rowstart = [i, dictname, file]
                 workbook = xlrd.open_workbook('dict/' + str(i) +'/' + file, on_demand = True)
@@ -78,4 +87,6 @@ def makeMasterDict(start, stop):
                         varrow = worksheet.row_values(r)
                         row = rowstart + varrow
                         c.writerow(row)
-makeMasterDict(2009, 2015)
+
+downloadDicts(args.start, args.stop)
+makeMasterDict(args.start, args.stop)

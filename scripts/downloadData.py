@@ -11,6 +11,14 @@ import json
 import zipfile
 import os
 import csv
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("start", help="start year",
+                    type=int)
+parser.add_argument("stop", help="stop year",
+                    type=int)
+args = parser.parse_args()
 
 # Import json of available files, created in scraper.py
 with open('data/ipedsfiles.json') as fp:
@@ -18,9 +26,11 @@ with open('data/ipedsfiles.json') as fp:
 
 # Download all the data in given years
 def downloadData(start, stop):
+    print("*****************************")
     print("Downloading data")
+    print("*****************************")
     for i in range(start,stop):
-        print(i)
+        print("Downloading " + str(i) + " data files")
         # Make directory for the raw files - one per year
         if not os.path.exists('raw/' + str(i) + '/'):
             os.makedirs('raw/' + str(i) + '/')
@@ -45,14 +55,15 @@ def downloadData(start, stop):
 
                 # Remove zip file
                 os.remove("raw/" + str(i) +'/' + urlname)
-#downloadData(1985, 2015)
 
 # Some datasets have been revised over time, so they'll download XXXX.csv and XXXX_rv.csv
 # We only want the revised version
 def removeDups(start, stop):
+    print("*****************************")
     print("Removing duplicates")
+    print("*****************************")
     for i in range(start,stop):
-        print(i)
+        print("Removing " + str(i) + " duplicates")
         files = os.listdir('raw/' + str(i) + '/')
         # See how many files are in each year
         # print([i,len(files)])
@@ -65,41 +76,9 @@ def removeDups(start, stop):
                 unrevised = name[:-3]
                 if(os.path.exists('raw/' + str(i) + '/' + unrevised + '.csv')):
                     os.remove('raw/' + str(i) + '/' + unrevised + '.csv')
-                    print('removed ' + unrevised)
-                else:
-                    print('no match ' + unrevised)
-#removeDups(1985, 2015)
+                    print('Removed ' + unrevised)
+#                else:
+#                    print('no match ' + unrevised)
 
-
-# Get column names in each CSV
-dataVariables = list()
-def listVars(start, stop):
-    print("Getting column names")
-    for i in range(start,stop):
-        print(i)
-        files = os.listdir('raw/' + str(i) + '/')
-        for file in files:
-            if file.endswith(('.csv')):
-                #print(file)
-
-                entry = dict()
-                entry['year'] = i
-
-                # file name minus '.csv'
-                name = file[:-4]
-                # If the file name ends in _rv, strip the rv for name field
-                if(name[-3:] =='_rv'):
-                    name = name[:-3]
-
-                entry['name'] = name
-                entry['path'] = 'raw/' + str(i) + '/' + file
-                with open('raw/' + str(i) + '/' + file, 'r') as c:
-                    d_reader = csv.DictReader(c)
-                    entry['columns'] = d_reader.fieldnames
-                c.close()
-                dataVariables.append(entry)
-    # Export to json
-    with open('data/ipedscolumns.json', 'w') as fp:
-        json.dump(dataVariables, fp)
-
-listVars(1985, 2015)
+downloadData(args.start, args.stop)
+removeDups(args.start, args.stop)
