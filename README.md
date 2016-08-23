@@ -21,7 +21,7 @@ Download data files listed in [data/ipedsfiles.json](data/ipedsfiles.json) for a
 python3 scripts/downloadData.py STARTYEAR STOPYEAR
 ```
 
-## Download files
+## Get column names
 Get column names from downloaded files for a given range of years and save in a json.
 ```python
 python3 scripts/getColumnNames.py STARTYEAR STOPYEAR
