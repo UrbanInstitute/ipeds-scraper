@@ -1,56 +1,57 @@
+# Functions to get data from IPEDS csvs into R, format, join into one long data frame
+
 library("jsonlite")
 library("dplyr")
 library("stringr")
+library("openxlsx")
 
-#Set your directory path for the data, if needed
 ipedspath <- "/Users/hrecht/Documents/ipeds-scraper/"
-
 allfiles <- fromJSON(paste(ipedspath, "data/ipedsfiles.json", sep=""))
 datacols <- fromJSON(paste(ipedspath, "data/ipedscolumns.json", sep=""))
 
-# Join colnames to file info, remove FLAGS datasets
+# Join colnames to file info, remove FLAGS datasets, using 1990+
 ipeds <- left_join(datacols, allfiles, by = c("name", "year"))
-ipeds <- ipeds %>% filter(!grepl("flags", name))
+ipeds <- ipeds %>% filter(!grepl("flags", name)) %>%
+  filter(year >= 1990)
 
 # There are a few in the way that IPEDS lists its files - remove them
 ipeds <-ipeds[!duplicated(ipeds[,"path"]),]
 
-# Sea
-rch for a variable, return list of files that contain it
+# Search for a variable(s), return list of files that contain it
 searchVars <- function(vars) {
   # Filter the full IPEDS metadata dataset info to just those containing your vars
   dt <- ipeds %>% filter(grepl(paste(vars, collapse='|'), columns, ignore.case = T))
-  dl <- split(dt, dt$name)
-  return(dl)
-  # For all the files, read in the CSVs
-  #dat <- lapply(dt$path, function(i){
-  #  read.csv(i, header=T, stringsAsFactors = F)
-  #})
-  #names(dat) <- dt$name
+  datalist <- split(dt, dt$name)
+  return(datalist)
 }
 
-# Example
-# f2d01	Tuition and fees - Total
-vars <- "f2d01"
-dl <- searchVars(vars)
-allvars <- tolower(c(vars, "unitid", "year"))
-for (i in seq_along(dl)) {
-  csvpath <- dl[[i]]$path
-  fullpath <- paste(ipedspath, csvpath, sep="")
-  name <- dl[[i]]$name
-  d <- read.csv(fullpath, header=T, stringsAsFactors = F)
-  # Give it a year variable
-  d$year <- dl[[i]]$year
-  # All lowercase colnames
-  colnames(d) <- tolower(colnames(d))
-  # Select just the need vars
-  selects <- intersect(colnames(d), allvars)
-  d <- d %>% select(one_of(selects))
-  
-  assign(name, d)
+# Return the datasets containing the var(s) and selected the necessary columns
+getData <- function(datalist, vars) {
+  allvars <- tolower(c(vars, "unitid", "year"))
+  for (i in seq_along(datalist)) {
+    csvpath <- datalist[[i]]$path
+    fullpath <- paste(ipedspath, csvpath, sep="")
+    name <- datalist[[i]]$name
+    d <- read.csv(fullpath, header=T, stringsAsFactors = F, na.strings=c("",".","NA"))
+    # Give it a year variable
+    d$year <- datalist[[i]]$year
+    # All lowercase colnames
+    colnames(d) <- tolower(colnames(d))
+    
+    # OPEID can be sometimes integer sometimes character - coerce to character
+    if("opeid" %in% colnames(d))
+    {
+      d$opeid <- as.character(d$opeid)
+    }
+    
+    # Select just the need vars
+    selects <- intersect(colnames(d), allvars)
+    d <- d %>% select(one_of(selects))
+    assign(name, d, envir = .GlobalEnv)
+  }
 }
 
-# If desired, bind the datasets together
+# Bind rows to make one data frame
 makeDataset <- function(vars) {
   dt <- ipeds %>% filter(grepl(paste(vars, collapse='|'), columns, ignore.case = T))
   ipeds_list <- lapply(dt$name, get)
@@ -58,4 +59,15 @@ makeDataset <- function(vars) {
   ipedsdata <- ipedsdata %>% arrange(year, unitid)
   return(ipedsdata)
 }
-ipedsdata <- makeDataset(vars)
+
+# If desired (usually the case): Do all the things: search, get datasets
+returnData <- function(myvars) {
+  dl <- searchVars(myvars)
+  getData(dl, myvars)
+  makeDataset(myvars)
+}
+rm(allfiles, datacols)
+
+# Example - some institutional characteristics
+instvars <- c("fips", "stabbr", "instnm", "sector", "pset4flg", "instcat", "ccbasic", "control", "deggrant", "opeflag", "opeind", "opeid", "carnegie", "hloffer")
+institutions <- returnData(instvars)
